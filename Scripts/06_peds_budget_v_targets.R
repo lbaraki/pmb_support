@@ -23,14 +23,6 @@
   library(gt)
   library(gtExtras)
     
-  # SI specific paths/functions  
-    load_secrets()
-    merdata <- file.path(glamr::si_path("path_msd"))
-    file_path <- return_latest(folderpath = merdata,
-      pattern = "Site_IM_FY20-22_20220318_v2_1_Zambia")
-      
-  # Grab metadata
-   get_metadata(file_path)
   
   # REF ID for plots
     ref_id <- "9add057c"
@@ -118,10 +110,10 @@
     )
   
   si_save("Images/USAID_peds_program_budget_change_line.png")
-  
-  #Q2: HTS Program Budget breakdown by OU
+
+# Q2: HTS Program Budget breakdown by OU ----------------------------------
       #x-axis: values, y-xis: value, facet: OU
-    #fct_reorder 
+      #fct_reorder 
   hts_budget %>% 
     pivot_longer(cols = `2024`: `2025`, names_to = "FY") %>%
     filter(`Operating Unit` %ni% c("Tanzania", "Zimbabwe", "Total")) %>% 
@@ -179,8 +171,9 @@
     gtsave_extra("Images/USAID_peds_hts_budget_change_summary_table.png")
     
     
-  
-  #Q3: How is this budget decrease reflected in HTS targets for these OU's? 
+
+# Q3: HTS target breakdown by OU ------------------------------------------
+  #How is this budget decrease reflected in HTS targets for these OU's? 
     #fct_reorder the OU's by their value for each FY (when categorical aka OU is mapped to size/value)
     
   hts_pos %>% 
