@@ -52,6 +52,10 @@
   hts_pos <- read_excel("Data/COP_PMB_Budget&Targets.xlsx",5)
     #USAID
   hts_pos_agency <- read_excel("Data/COP_PMB_Budget&Targets.xlsx",6)
+  
+  hts_agency <- read_excel("Data/COP_PMB_Budget&Targets.xlsx",7)
+  
+  txcurr_agency <- read_excel("Data/COP_PMB_Budget&Targets.xlsx",8)
 
 # MUNGE ============================================================================
   
@@ -140,13 +144,15 @@
     
     #can also use tables for this info and do % change
   hts_budget %>% 
+    #ct_budget %>% 
     filter(`Operating Unit` != "Total") %>% 
     #mutate(`Operating Unit` = case_when(
      # `Operating Unit` %in% c("Democratic Republic of the Congo") ~ "DRC",
       #TRUE ~ `Operating Unit`)) %>% 
   mutate(delta = `2025`-`2024`,
          pct_delta = (`2025`-`2024`)/(`2024`)) %>%
-    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2")) %>% 
+    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2")) %>%
+    arrange(pct_delta) %>%
     gt(groupname_col = "Funding Agency") %>% 
     fmt_currency(columns = 4:6, 
                decimals = 0) %>% 
@@ -286,15 +292,23 @@
   
   #GT TABLE VERSION - simpler and shows % change
   
- gt_save<- hts_pos_agency %>%
+  htspos_save<- hts_pos_agency %>%
     pivot_longer(cols = `2024`: `2025`, names_to = "FY") %>%
     group_by(`Coarse Age`,  Indicator, FY) %>% 
     spread(FY, value) %>% 
     mutate(delta = `2025`-`2024`,
            pct_delta = (`2025`-`2024`)/(`2024`)) %>%
-    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2")) 
+    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2"))
  
-gt_save2<- tx_curr %>%
+ hts_save <- hts_agency %>%
+   pivot_longer(cols = `2024`: `2025`, names_to = "FY") %>%
+   group_by(`Coarse Age`,  Indicator, FY) %>% 
+   spread(FY, value) %>% 
+   mutate(delta = `2025`-`2024`,
+          pct_delta = (`2025`-`2024`)/(`2024`)) %>%
+   mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2"))
+ 
+  txcurr_save<- tx_curr %>%
    pivot_longer(cols = `2023`: `2025`, names_to = "FY") %>%
    filter(FY !="2023") %>% 
    group_by(`Coarse Age`,  Indicator, FY) %>% 
@@ -303,9 +317,20 @@ gt_save2<- tx_curr %>%
           pct_delta = (`2025`-`2024`)/(`2024`)) %>%
    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2")) 
   
- gt_save %>%
-   #mutate(`Operating Unit` = case_when(
-    # `Operating Unit` %in% c("Democratic Republic of the Congo") ~ "DRC",
+  txcurr_ag<- txcurr_agency %>%
+    pivot_longer(cols = `2024`: `2025`, names_to = "FY") %>%
+    #filter(FY !="2023") %>% 
+    group_by(`Coarse Age`,  Indicator, FY) %>% 
+    spread(FY, value) %>% 
+    mutate(delta = `2025`-`2024`,
+           pct_delta = (`2025`-`2024`)/(`2024`)) %>%
+    mutate(decline_shp = ifelse(pct_delta < 0,"\u25Bc", "\u25B2")) 
+  
+  #htspos_save %>%
+   hts_save %>% 
+   filter(`Operating Unit` !="Total") %>%
+   arrange(pct_delta) %>% 
+   #mutate(`Operating Unit` = case_when(`Operating Unit` %in% c("Democratic Republic of the Congo") ~ "DRC",
      #TRUE ~ `Operating Unit`)) %>% 
  gt(groupname_col = "Coarse Age") %>% 
     fmt_number(columns = 3:6, 
@@ -315,17 +340,23 @@ gt_save2<- tx_curr %>%
     cols_label(Indicator = "",
                pct_delta = "% change",
                decline_shp = "") %>% 
+   grand_summary_rows(
+     columns = 4:6,
+     fns = list(Total = ~sum(., na.rm = TRUE)),
+     formatter = fmt_number,
+     decimals = 0) %>% 
     tab_source_note(
-      source_note = glue("Source: Financial & MER Integrated Analytics | [{lubridate::today()}]")) %>% 
+      source_note = glue("Source: Target Seting Tool Dossier | [{lubridate::today()}]")) %>% 
   tab_options(
     source_notes.font.size = px(10)) %>% 
   tab_header(
     title = glue("TARGET CHANGE SUMMARY: FY24 TO FY25"),
   ) %>% 
   gt_theme_nytimes() %>%
-   gtsave_extra("Images/USAID_peds_htspos_target_change_summary_table.png")
+   gtsave_extra("Images/USAID_peds_hts_target_change_summary_table.png")
  
- gt_save2 %>%
+ txcurr_ag %>%
+   arrange(pct_delta) %>% 
    #mutate(`Operating Unit` = case_when(
    # `Operating Unit` %in% c("Democratic Republic of the Congo") ~ "DRC",
    #TRUE ~ `Operating Unit`)) %>% 
@@ -338,13 +369,15 @@ gt_save2<- tx_curr %>%
               pct_delta = "% change",
               decline_shp = "") %>% 
    tab_source_note(
-     source_note = glue("Source: Financial & MER Integrated Analytics | [{lubridate::today()}]")) %>% 
+     source_note = glue("Source: Target Setting Tool Dossier | [{lubridate::today()}]")) %>% 
    tab_options(
      source_notes.font.size = px(10)) %>% 
    tab_header(
      title = glue("TARGET CHANGE SUMMARY: FY24 TO FY25"),
    ) %>% 
-   gt_theme_nytimes()
+   gt_theme_nytimes() %>% 
+   gtsave_extra("Images/USAID_peds_txcurr_target_change_summary_table.png")
+  
     
   
   #Bar chart w/ sum of indicators
