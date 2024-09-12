@@ -28,7 +28,7 @@
   # SI specific paths/functions  
     load_secrets()
     merdata <- file.path(glamr::si_path("path_msd"))
-    file_path <- return_latest(folderpath = merdata, pattern = "OU_IM_FY22-24")
+    file_path <- return_latest(folderpath = merdata, pattern = "OU_IM_FY22-25")
     
       
   # Grab metadata
@@ -50,13 +50,9 @@
 
     df <- read_psd(file_path) %>% 
       clean_agency() %>% 
-      filter(funding_agency == "USAID",
-             operatingunit %ni% c("Ukraine"),
-             fiscal_year %in% c(2023:2024),
-             
-             #operatingunit == "Nigeria"
-             ) #%>% 
-      #resolve_knownissues()
+      filter(funding_agency == "USAID")
+             #operatingunit %ni% c("Ukraine"),
+             #fiscal_year %in% c(2023:2024)) 
     
     names(df)
     
@@ -67,18 +63,16 @@
   #Clinical Cascade 
     #https://usaid-oha-si.github.io/cascade/index.html
     cascade::plot_name #peds - 4 
-    return_cascade(df, 4) #%>% View()
-    return_cascade_plot(df %>% filter(!(operatingunit =="Nigeria")),
-                                      #ageasentered %in% c("<01","01-04","05-09",
-                                       #                   "10-14", "15-19")) %>% 
-                        export = F) + 
-      plot_annotation(caption = glue("<span style= 'color:{grey60k}'>Note:
-                                     Nigeria excluded due to missing data</span>"),
-                      theme = theme(plot.caption = ggtext::element_markdown()))
+    return_cascade(df, 4) 
+    return_cascade_plot(df, #%>% filter(!(operatingunit =="Ukraine")),
+                        export = F) #+ 
+      #plot_annotation(#caption = glue("<span style= 'color:{grey60k}'>Note:
+                                     #Nigeria excluded due to missing data</span>"),
+                      #theme = theme(plot.caption = ggtext::element_markdown()))
     
-    #si_save("Graphics/FY24Q2_ClinicalCascade_Peds.png")
-    si_save(glue("Graphics/{metadata$curr_pd}_Cascade_Peds_Nigeria.png"), scale = 1.25)
-    si_save(glue("Graphics/{metadata$curr_pd}_Cascade_Peds_AllOUs.png"), scale = 1.25) #w/o Nigeria
+    si_save("Graphics/FY24Q3_ClinicalCascade_Peds.png", scale = 1.25)
+    #si_save(glue("Graphics/{metadata$curr_pd}_Cascade_Peds_Nigeria.png"), scale = 1.25)
+    #si_save(glue("Graphics/{metadata$curr_pd}_Cascade_Peds_AllOUs.png"), scale = 1.25) #w/o Nigeria
     
   #Treatment Table
     #mdb_df_tx <- make_mdb_tx_df(df)
