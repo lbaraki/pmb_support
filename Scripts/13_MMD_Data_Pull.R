@@ -126,14 +126,51 @@
     
     View(combo_df)
     
+    #Original MMD only for Alex
+    df_reshape <- df_mmd %>% 
+      gophr::clean_indicator() %>% 
+      filter(fiscal_year == meta$curr_fy) %>% 
+      group_by(operatingunit, indicator,trendscoarse, otherdisaggregate, fiscal_year) %>% 
+      summarise(across(starts_with("qtr"), sum, na.rm = TRUE), 
+                .groups = "drop") %>% 
+      reshape_msd(include_type = FALSE) %>% 
+      select(operatingunit, trendscoarse, period, otherdisaggregate, value) %>% 
+    mutate(
+     otherdisaggregate = factor(otherdisaggregate, 
+                               levels = c("ARV Dispensing Quantity - Less than 3 months",
+                                        "ARV Dispensing Quantity - 3 to 5 months",
+                                        "ARV Dispensing Quantity - 6 or more months"))
+    )
+    
+    df_final <- df_reshape %>%
+      arrange(operatingunit) %>% 
+      mutate(
+        otherdisaggregate = factor(otherdisaggregate, 
+                                   levels = c("ARV Dispensing Quantity - Less than 3 months",
+                                              "ARV Dispensing Quantity - 3 to 5 months",
+                                              "ARV Dispensing Quantity - 6 or more months"))
+      ) %>%
+      #rename(indicator = otherdisaggregate) %>% 
+      arrange(period) %>% 
+      unite("combo", period:otherdisaggregate, sep = "_", na.rm = T) %>% 
+      pivot_wider(
+        names_from = combo,
+        names_glue = "{tolower(combo)}"
+      ) 
+    
+    View(df_final)
+    
 # VIZ ============================================================================
 
   #Output - excel 
     #write.csv(df_final, "Dataout/Peds_MMD_FY24_initial.csv", row.names = F)
-    write.csv(df_final, "Dataout/Peds_MMD_FY22-FY24_initial.csv", row.names = F)
+    #write.csv(df_final, "Dataout/Peds_MMD_FY22-FY24_initial.csv", row.names = F)
+    write.csv(df_final, "Dataout/Peds_MMD_FY24_final.csv", row.names = F)
     
     write.csv(df_vl, "Dataout/Peds_VL_FY22-FY24_initial.csv", row.names = F)
     
-    write.csv(combo_df, "Dataout/Peds_MMD_VL_FY22-FY24_initial.csv", row.names = F)
+    #write.csv(combo_df, "Dataout/Peds_MMD_VL_FY22-FY24_initial.csv", row.names = F)
+    
+    write.csv(combo_df, "Dataout/Peds_MMD_VL_FY22-FY24_clean.csv", row.names = F)
 # SPINDOWN ============================================================================
 
